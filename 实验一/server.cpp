@@ -210,7 +210,7 @@ int main() {
         t.detach(); // 分离线程，让它在后台独立运行
     }
 
-    // 6. 清理 (注意：此代码段在无限循环中不会被执行)
+    // 6. 清理 
     closesocket(listen_socket);
     WSACleanup();
     std::cout << "[" << getCurrentTimestamp() << "] 服务器关闭。" << std::endl;
