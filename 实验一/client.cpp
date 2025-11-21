@@ -31,8 +31,7 @@ bool sendAll(SOCKET sock, const std::string& message) {
     return true;
 }
 
-// 接收消息的线程函数
-// 接收退出标志的引用
+// 接收消息的线程函数,并接收退出标志的引用
 void receiveMessages(SOCKET server_socket, std::atomic<bool>& quit_flag_ref) {
     char buffer[4096];
     int bytes_received;
@@ -44,7 +43,7 @@ void receiveMessages(SOCKET server_socket, std::atomic<bool>& quit_flag_ref) {
         FD_SET(server_socket, &read_fds);
         timeval timeout;
         timeout.tv_sec = 0;  // 0秒
-        timeout.tv_usec = 100000; // 100毫秒 (100,000 微秒)
+        timeout.tv_usec = 100000; // 100毫秒
 
         int activity = select(0, &read_fds, NULL, NULL, &timeout);
 
@@ -59,8 +58,6 @@ void receiveMessages(SOCKET server_socket, std::atomic<bool>& quit_flag_ref) {
                 } else if (bytes_received == 0) {
                     // 服务器关闭了连接
                     std::cout << "[系统] 与服务器的连接已断开。" << std::endl;
-                    // 可以选择在这里也设置退出标志，以防主线程没有设置
-                    // quit_flag_ref.store(true);
                     break; // 退出循环
                 } else {
                     // recv 出错, 但在使用 select 后，可能是由本地 close 引起的，检查退出标志
@@ -91,7 +88,7 @@ int main() {
     SetConsoleCP(CP_UTF8);
     SetConsoleOutputCP(CP_UTF8);
 
-    // 重置退出标志 (以防万一之前运行过)
+    // 重置退出标志 (以防之前运行过)
     g_quit_flag.store(false);
 
     // 1. 初始化Winsock
@@ -159,7 +156,6 @@ int main() {
 
     // 6. 创建接收消息的线程 - 传递退出标志的引用
     std::thread receiver_thread(receiveMessages, client_socket, std::ref(g_quit_flag));
-    // receiver_thread.detach(); // 不再 detach
     std::cout << "[系统] 消息接收线程已启动。" << std::endl;
 
     // 7. 主线程用于发送消息
